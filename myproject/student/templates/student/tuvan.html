@@ -1,0 +1,267 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="{% static 'student/style.css' %}" rel="stylesheet">
+    <title>Thông tin tư vấn</title>
+</head>
+<body>
+    <img src="{% static 'student/bg.jpg' %}" style="width: 100%; height: 120px;">
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark">
+        <ul class="navbar-nav">
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'index' %}">Bảng điểm sinh viên</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'khoadaotao' %}">Khóa đào tạo</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'chuyennganh' %}">Chuyên ngành</a>
+          </li>
+          <li class="nav-item active" >
+            <a class="nav-link" href="{% url 'ctdaotao' %}">Chương trình đào tạo (Môn học)</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'nguoidung' %}">Quản lí người dùng</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'tuvan' %}">Thông tin tư vấn</a>
+          </li>
+        </ul>
+    </nav>
+    <div class="container">
+       
+        <H3>Tư vấn</H3>
+
+
+
+
+
+
+        <input id="cndata" hidden value="{{cndata}}">
+        
+        <div class="form-inline navi">
+            <!-- <button type="button" class="btn btn-success">Thêm</button> -->
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">
+    Thêm
+</button>
+
+<!-- The Modal -->
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+    <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+        <h4 class="modal-title"> Thêm người dùng</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <p id="addinform" style="text-align: center;"></p>
+        <!-- Modal body -->
+        <!-- <input type="hidden" id="monhoc_data" value='{{ monhoc }}'> -->
+        <!-- <input type="hidden" id="sinhvien_data" value="{{ sinhvien }}"> -->
+        <div class="modal-body">
+            
+            <form action="/action_page.php">
+                <div class="form-group">
+                    <label for="z">Khoảng cách tâm</label>
+                    <input type="text" class="form-control" id="create_kctam" name="z">
+                </div>
+                <div class="form-group">
+                    <label for="z">Mã chuyên ngành</label>
+                    <input type="text" class="form-control" id="create_macn" name="z">
+                </div>
+                <div class="form-group">
+                    <label for="z">Tọa độ tâm</label>
+                    <input type="text" class="form-control" id="create_toadotam" name="z">
+                </div>
+                <div class="form-group">
+                    <label for="z">Mã người dùng</label>
+                    <input type="text" class="form-control" id="create_manguoidung" name="z">
+                </div>
+                <div class="form-group">
+                    <label for="z">Mã khóa đào tạo</label>
+                    <input type="text" class="form-control" id="create_makdt" name="z">
+                </div>
+            
+            </form>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+        <button type="button" id="add_btn" class="btn btn-success">Thêm</button>
+        </div>
+
+    </div>
+    </div>
+
+</div>
+            <button type="button" id="del" class="btn btn-success">Xóa</button>
+            <button type="button" id="update"class="btn btn-success">Sửa</button>
+            <button type="button" class="btn btn-success">Import dữ liệu</button>
+        </div>
+       
+        <div class="showtable">
+            {{inform}}
+            <table id="res" class="table">
+                <tr>
+                    <th></th>
+                    <th>Khoảng cách tâm</th>
+                    <th>Mã chuyên ngành</th>
+                    <th>Tọa độ tâm</th>
+                    <th>Mã người dùng</th>
+                    <th>Mã khóa đào tạo</th>
+                    
+                </tr>
+                {% for x in tuvan %}
+                <tr>
+                    <td>
+                        <input class="check" type="checkbox">
+                    </td>
+                    <td>
+                        <input disabled value='{{ x.kctam }}'>
+                    </td>
+                    <td style="display: none;">
+                        <input disabled value='{{ x.matv }}'>                    
+                    </td>
+                    <td>
+                        <input disabled value='{{ x.macn }}'>                    
+                    </td>
+                    <td>
+                        <input disabled value='{{ x.toadotam }}'>                    
+                    </td>
+                    <td>
+                        <input disabled value='{{ x.manguoidung }}'>                    
+                    </td>
+                    <td>
+                        <input disabled value='{{ x.makdt }}'>                    
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+</body>
+<script>
+   
+    window.onload = function(){
+         // Checkbox control
+         checkboxes = document.querySelectorAll('.check');
+            checkboxes.forEach((node)=>{
+                node.onchange = function(){
+                    inputs = this.parentNode.parentNode.querySelectorAll('input');
+                    n = inputs.length;
+                    if (this.checked){
+                        for (let i=1; i < n; i++){
+                            inputs[i].disabled = false;
+                        }
+                    } else {
+                        for (let i=1; i < n; i++){
+                            inputs[i].disabled = true;
+                        }
+                    }
+                }
+            })
+ // Onclick Update, Delete button
+ update.onclick = function(){action('modify')};
+    del.onclick = function(){action('delete')};
+    function action (action){
+        checkboxes = document.querySelectorAll("input[type='checkbox']:checked");
+        if (action=="delete"){
+            arr = []
+            checkboxes.forEach(function(node){
+                parent = node.parentNode.parentNode;
+                cells = parent.querySelectorAll('td');
+                console.log(cells[2].childNodes[1].value);
+                arr.push(cells[2].childNodes[1].value);
+                
+
+            })
+            console.log(arr);
+
+            // Request to server
+            var xhttp = new XMLHttpRequest();
+            xhttp.open('POST', "{% url 'deltuvan'%}");
+            xhttp.setRequestHeader("Content-type", "text/plain");
+            xhttp.send(JSON.stringify(arr));
+            xhttp.onload = () => {
+                alert(JSON.parse(xhttp.response)['inform']);
+                window.location.reload();
+            }
+        } else { // Modify
+            data = []
+            checkboxes.forEach(function(node){
+                arr = [];
+                parent = node.parentNode.parentNode;
+                cells = parent.querySelectorAll('td');
+                for (let i=1;i<cells.length; i++){
+                    arr.push(cells[i].childNodes[1].value);
+                }
+                data.push(arr);
+            })
+            console.log(data);
+            var xhttp = new XMLHttpRequest();
+            xhttp.open('POST', "{% url 'modifytuvan'%}");
+            xhttp.setRequestHeader("Content-type", "text/plain");
+            xhttp.send(JSON.stringify(data));
+            xhttp.onload = () => {
+                alert(JSON.parse(xhttp.response)['inform'])
+                window.location.reload();
+
+            }
+        }
+    }
+
+    add_btn.onclick = function(){
+        data = [
+            create_kctam.value,
+            create_macn.value,
+            create_toadotam.value,
+            create_manguoidung.value,
+            create_makdt.value,
+        ];
+        if (create_kctam.value&&
+            create_macn.value&&
+            create_toadotam.value&&
+            create_manguoidung.value&&
+            create_makdt.value){
+                var xhttp = new XMLHttpRequest();
+                xhttp.open('POST', "{% url 'createtuvan'%}");
+                xhttp.setRequestHeader("Content-type", "text/plain");
+                xhttp.send(JSON.stringify(data));
+                xhttp.onload = () => {
+                    alert(JSON.parse(xhttp.response)['inform']);
+                    if (JSON.parse(xhttp.response)['inform']=="Success!"){
+                        window.location.reload();
+                    }
+                }
+            } else {
+                alert("Nhập đủ thông tin");
+            }
+        
+    }
+
+    }
+   
+</script>
+
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</html>

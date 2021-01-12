@@ -1,0 +1,346 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="{% static 'student/style.css' %}" rel="stylesheet">
+    <title>{{name}}</title>
+</head>
+<body>
+    <p>{{name}}</p>
+    <input id="masv" type="hidden" value="{{masv}}">
+    <input id="cndata" type="hidden" value="{{data}}">
+    <input id="cndata_index" hidden value="{{cndata}}">
+    <input type="hidden" id="monhoc_data" value='{{ monhoc }}'>
+
+
+    <div class="container">
+        <div class="form-inline navi">
+            <select class="form-control" id="sel1">
+                <option>Chọn khóa đào tạo</option>
+            </select>
+            <select class="form-control" id="sel2">
+           
+            </select>
+            <button type="button" id="showmark" class="btn btn-success">Hiển thị bảng điểm</button>
+            <button type="button" id="subjectfilter" class="btn btn-success">Lọc môn</button>
+
+
+<!-- ===================================================== -->
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal">
+    Thêm
+</button>
+
+<!-- The Modal -->
+<div class="modal" id="myModal">
+    <div class="modal-dialog">
+    <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+        <h4 class="modal-title"> {{name}}</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <p id="addinform" style="text-align: center;"></p>
+        <!-- Modal body -->
+        <!-- <input type="hidden" id="monhoc_data" value='{{ monhoc }}'> -->
+        <!-- <input type="hidden" id="sinhvien_data" value="{{ sinhvien }}"> -->
+        <div class="modal-body">
+            
+            <form action="/action_page.php">
+                <div class="form-group">
+                    <label for="sel1">Khóa đào tạo</label>
+                    <select class="form-control" id="add1" name="makdt">
+                        {% for x in khoadaotao %}
+                        <option value="{{x.makdt}}">{{x.makdt}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sel1">Chuyên ngành</label>
+                    <select class="form-control" id="add2" name="macn">
+                      
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sel1">Môn học</label>
+                    <select class="form-control" id="monhocinput" name="mamh">
+                      
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <input type="hidden" class="form-control" id="mssv" value="{{masv}}">
+                </div>
+                <div class="form-group">
+                    <label for="z">Điểm:</label>
+                    <input type="number" max="10" class="form-control" id="dieminput" name="z">
+                </div>
+            </form>
+        </div>
+        
+        <!-- Modal footer -->
+        <div class="modal-footer">
+        <button type="button" id="add_btn" class="btn btn-success">Nhập điểm</button>
+        </div>
+
+    </div>
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+
+
+
+            <button type="button" id="suggest" class="btn btn-success">Gợi ý</button>
+        </div>
+ 
+        <div class="showtable" id="showtable">
+            {{inform}}
+            <table id="res" class="table"></table>
+        </div>
+
+<!-- ADD DIEM --------------------------------------------- -->
+<script>
+    window.addEventListener('load', function(){
+        
+        
+        add_btn.onclick = function(){
+            makdt = add1.value;
+            macn = add2.value;
+            masv = mssv.value;
+            mamh = monhocinput.value;
+            diem = dieminput.value;
+            if (makdt&&macn&&masv&&mamh&&diem){
+                obj = {
+                    'makdt': makdt,
+                    'macn': macn,
+                    'masv': masv,
+                    'mamh': mamh,
+                    'diem': diem
+                }
+                console.log(obj);
+                var xhttp = new XMLHttpRequest();
+                xhttp.open('POST', "{% url 'student_add' %}");
+                xhttp.setRequestHeader("Content-type", "text/plain");
+                xhttp.send(JSON.stringify(obj));
+                xhttp.onload = () => {
+                    x = JSON.parse(xhttp.response);
+                    addinform.innerText = x['inform'];
+                }
+            } else {
+                alert("Nhập đủ thông tin!");
+            }
+        }
+      
+        
+        // add thong tin khoa hoc
+        cn = JSON.parse(cndata_index.value);
+        kdt1 = cn.filter((obj)=>{
+            if (obj['makdt'] == "KDT1"){
+                return obj;
+            }
+        })
+        kdt1 = kdt1.reduce((a, obj) => {
+            return a + `<option value="${obj.macn}">${obj.tencn}</option>`
+        }, "")
+        kdt2 = cn.filter((obj)=>{
+            if (obj['makdt'] == "KDT2"){
+                return obj;
+            }
+        })
+        kdt2 = kdt2.reduce((a, obj) => {
+            return a + `<option value="${obj.macn}">${obj.tencn}</option>`
+        }, "")
+        // add mon hoc
+        monhocdt = JSON.parse(monhoc_data.value);
+     
+        document.querySelector('#add2').innerHTML = kdt1;
+        // document.querySelector('#monhocinput').innerHTML = monhoc_kdt1;
+        document.querySelector('#add1').onchange = function(){
+            x = document.querySelector('#add2');
+            if (this.value == "KDT1"){
+                x.innerHTML = kdt1;
+            } else {
+                x.innerHTML = kdt2;
+            }
+        }
+        document.querySelector('#add2').onchange = function(){
+            kdt_id = document.querySelector('#add1').value;
+            cn_id = this.value;
+            str = "";
+            monhocdt.forEach((item)=>{
+                if (item['macn']==cn_id && item['makdt']==kdt_id){
+                    str = str + `<option value="${item.mamh}">${item.tenmh}</option>`
+                }
+            })
+            document.querySelector('#monhocinput').innerHTML = str;
+        }
+    })
+</script>
+
+
+<!--  --------------------------------------------- -->
+
+
+
+
+<script>
+    window.onload = function(){
+        cndata = JSON.parse(cndata.value);
+        keys = Object.keys(cndata);
+        kdt = keys.reduce((a, item) => {
+            return a + `<option value=${item}>${item}</option>`
+        }, '')
+        console.log(kdt);
+        sel1.innerHTML += kdt;
+        sel1.onchange = function(){
+            this.querySelectorAll('option')[0].disabled = true;
+            kdt = this.value;
+            arr = cndata[kdt];
+            chuyennganh = arr.reduce((a,element) => {
+                return a + `<option value=${Object.keys(element)[0]}>${Object.values(element)[0]}</option>`
+            }, '');
+            console.log(chuyennganh);
+            sel2.innerHTML = chuyennganh;
+        }
+        // Show diem hoc sinh
+        showmark.onclick = function(){
+            makdt = sel1.value;
+            machn = sel2.value;
+            msv = masv.value;
+            var xhttp = new XMLHttpRequest();
+                xhttp.open('GET', `{% url 'mark_student' %}?macn=${machn}&makdt=${makdt}&masv=${msv}`);
+                
+                xhttp.send();
+                xhttp.onload = () => {
+                    res.innerHTML = "";
+                    rs = JSON.parse(xhttp.response);
+                    header = `<tr><th>Môn học</th><th>Điểm</th></tr>`
+                    res.insertAdjacentHTML("beforeEnd", header);
+                    rs.forEach(ele => {
+                        str = `<tr><td>${ele['tenmon']}</td><td>${ele['diem']}</td></tr>`
+                        res.insertAdjacentHTML("beforeEnd", str);
+                    });
+                    
+                }
+ 
+
+        }
+
+
+    }
+
+    document.querySelector('#subjectfilter').onclick = function(){
+            machns = sel2.querySelectorAll("option");
+            x = [];
+            machns.forEach((option)=>{
+                x.push(option.value);
+            })
+            machn = JSON.stringify(x);
+            // machn = document.querySelector("#sel2").value;
+            msv = masv.value;
+            console.log(machn, msv);
+            // macn = document.querySelector("#sel1").value;
+            // console.log(macn);
+            var xhttp = new XMLHttpRequest();
+                xhttp.open('GET', `{% url 'getmark_filter_sv' %}?macn=${machn}&action=filter&masv=${masv.value}&makdt=${sel1.value}`);
+                
+                xhttp.send();
+                xhttp.onload = () => {
+                    rs = JSON.parse(xhttp.response);
+                    console.log(rs);
+                    cn = JSON.parse(cndata_index.value);
+                    tencn = [];
+                    cn.forEach((obj)=>{
+                        tencn.push(obj['tencn']);
+                    })
+                    // console.log(tencn);
+                    final_str = "";
+                    rs.forEach((rs, index)=>{
+                        monhoc = rs.pop(rs.length-1);
+                        // console.log(monhoc);
+                        n = monhoc.length;
+                        header = `<tr><th colspan="10">${tencn[index]}</th></tr>`;
+                        // header = `<p>${tencn[index]}</p>`;
+                        header = header + `<tr><th></th><th>STT</th><th>Ma SV</th><th>Ho dem</th><th>Ten</th>`
+                        for (let i=0; i<n; i++){
+                            header = header + `<td>${monhoc[i]}</th>`
+                        }
+                        header = header + "/tr"
+                        // console.log(rs);
+                        str= header;
+                        rs.forEach((hs, i) => {
+                            str =str + `<tr><td><input class="check" type="checkbox"></td><td>${i}</td><td>${hs['sv']['masv']}</td><td>${hs['sv']['ho']}</td><td>${hs['sv']['ten']}</td>`
+                            monhoc.forEach(tenmon => {
+                                str = str + `<td><input disabled value='${hs[Object.keys(hs)[0]][tenmon]}'></td>`
+                            })
+                        });
+                        str = str + "</tr>" 
+                        final_str += str;
+                    })
+                     
+                    // console.log(str);    
+                    res.innerHTML = final_str;
+                    checkboxes = document.querySelectorAll('.check');
+                    checkboxes.forEach((node)=>{
+                        node.onchange = function(){
+                            inputs = this.parentNode.parentNode.querySelectorAll('input');
+                            n = inputs.length;
+                            if (this.checked){
+                                for (let i=1; i < n; i++){
+                                    inputs[i].disabled = false;
+                                }
+                            } else {
+                                for (let i=1; i < n; i++){
+                                    inputs[i].disabled = true;
+                                }
+                            }
+                        }
+                    })
+                }  
+    }
+
+    document.querySelector('#suggest').onclick = function(){
+            machns = sel2.querySelectorAll("option");
+            makdt = sel1.value;
+            console.log(makdt);
+            x = [];
+            machns.forEach((option)=>{
+                x.push(option.value);
+            })
+            machn = JSON.stringify(x);
+            // machn = document.querySelector("#sel2").value;
+            msv = masv.value;
+            console.log(machn, msv);
+            // macn = document.querySelector("#sel1").value;
+            // console.log(macn);
+            var xhttp = new XMLHttpRequest();
+                xhttp.open('GET', `{% url 'getmark_filter_sv' %}?macn=${machn}&action=suggest&masv=${masv.value}&makdt=${makdt}`);
+                
+                xhttp.send();
+                xhttp.onload = () => {
+                    rs = JSON.parse(xhttp.response);
+                    let suggest = '';
+                    res.innerHTML = `Chuyên ngành gợi ý: ${rs['suggest']}`;
+                }  
+    }
+
+    
+</script>
+
+
+
+
+
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</html>
